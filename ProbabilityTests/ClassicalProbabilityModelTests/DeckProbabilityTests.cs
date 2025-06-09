@@ -4,7 +4,7 @@ using ProbabilityConsolePrjct.ProbabilityModels;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ProbabilityTests
+namespace ProbabilityTests.ClassicalProbabilityModelTests
 {
     [TestFixture]
     public class DeckProbabilityTests

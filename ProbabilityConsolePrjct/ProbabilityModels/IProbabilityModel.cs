@@ -10,7 +10,7 @@ namespace ProbabilityConsolePrjct.ProbabilityModels
     /// Интерфейс модели вероятностей
     /// </summary>
     /// <typeparam name="T">Тип события</typeparam>
-    internal interface IProbabilityModel<T>
+    public interface IProbabilityModel<T>
     {
         /// <summary>
         /// Вероятность события
