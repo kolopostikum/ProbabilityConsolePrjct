@@ -212,5 +212,103 @@ namespace ProbabilityConsolePrjct.ProbabilityModels
         {
             return !a.Intersection(b).FavorableOutcomes.Any();
         }
+
+        public static bool CheckMutuallyIndependent(IEnumerable<ClassicalEvent<T>> events)
+        {
+            if (IsEmptyOrNull(events))
+                return true;
+
+            var eventList = events.ToList();
+            ValidateSameProbabilityModel(eventList);
+
+            return AreAllSubsetsIndependent(eventList);
+        }
+
+        private static bool AreAllSubsetsIndependent(List<ClassicalEvent<T>> events)
+        {
+            int n = events.Count;
+
+            // Проверяем все подмножества размером от 2 до n
+            for (int subsetSize = 2; subsetSize <= n; subsetSize++)
+            {
+                // Генерируем все комбинации заданного размера
+                var combinations = GenerateCombinations(events, subsetSize);
+
+                foreach (var combination in combinations)
+                {
+                    if (!IsSubsetIndependent(combination))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private static bool IsSubsetIndependent(List<ClassicalEvent<T>> events)
+        {
+            // Вычисляем пересечение всех событий в подмножестве
+            ClassicalEvent<T> intersection = events[0];
+            for (int i = 1; i < events.Count; i++)
+            {
+                intersection = intersection.Intersection(events[i]);
+            }
+
+            // Вычисляем произведение вероятностей
+            double product = 1.0;
+            foreach (var e in events)
+            {
+                product *= e.Probability;
+            }
+
+            // Сравниваем вероятность пересечения с произведением вероятностей
+            return Math.Abs(intersection.Probability - product) < 1e-9;
+        }
+
+        private static List<List<ClassicalEvent<T>>> GenerateCombinations(
+            List<ClassicalEvent<T>> events, int k)
+        {
+            var result = new List<List<ClassicalEvent<T>>>();
+            var current = new List<ClassicalEvent<T>>();
+            GenerateCombinationsRecursive(events, k, 0, current, result);
+            return result;
+        }
+
+        private static void GenerateCombinationsRecursive(
+            List<ClassicalEvent<T>> events, int k, int start,
+            List<ClassicalEvent<T>> current, List<List<ClassicalEvent<T>>> result)
+        {
+            if (k == 0)
+            {
+                result.Add(new List<ClassicalEvent<T>>(current));
+                return;
+            }
+
+            for (int i = start; i <= events.Count - k; i++)
+            {
+                current.Add(events[i]);
+                GenerateCombinationsRecursive(events, k - 1, i + 1, current, result);
+                current.RemoveAt(current.Count - 1);
+            }
+        }
+
+        private static bool IsEmptyOrNull(IEnumerable<ClassicalEvent<T>> events)
+        {
+            return events == null || !events.Any();
+        }
+
+        private static void ValidateSameProbabilityModel(List<ClassicalEvent<T>> events)
+        {
+            if (events.Count < 2)
+                return;
+
+            var firstModel = events[0]._probabilityModel;
+            if (events.Any(e => !ReferenceEquals(e._probabilityModel, firstModel)))
+            {
+                throw new InvalidOperationException(
+                    "All events must belong to the same probability model");
+            }
+        }
     }
 }
